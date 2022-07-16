@@ -1,0 +1,175 @@
+<!doctype html>
+
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+
+    <title>Lunch Insulin</title>
+    <meta name="description" content="Lunch Insulin">
+    <meta name="author" content="SitePoint">
+    <style>
+        body {
+            font-size: 40pt;
+        }
+        input {
+            font-size: 40pt;
+        }
+        button {
+            font-size: 40pt;
+        }
+        input[type="radio"] , input[type="checkbox"]{
+            -webkit-transform: scale(3.0);
+            transform: scale(3.0);
+            margin-right: 0.5em;
+        }
+    </style>
+
+    <script language="javascript" type="text/javascript">
+    function isNum(val){
+        return !isNaN(val)
+    }
+    function round(val){
+        return (Math.round(val * 10)) / 10
+    }
+    function calc() {
+        var tested_BSL_tag = document.getElementById("tested_blood_suger_level");
+        var target_BSL_tag = document.getElementById("target_blood_suger_level");
+        var ISF_tag = document.getElementById("insulin_sensitivity_factor");
+        var carb_value_tag = document.getElementById("carb_value");
+        var carb_ratio_tag = document.getElementById("carb_ratio");
+
+        var tested_BSL = tested_BSL_tag.value;
+        var target_BSL = target_BSL_tag.value;
+        var ISF = ISF_tag.value;
+        var carb_value = carb_value_tag.value;
+        var carb_ratio = carb_ratio_tag.value;
+
+        var meal_type_elements = document.getElementsByName("meal_type");
+        let meal_type = "";
+        for (let i = 0; i < meal_type_elements.length; i++){
+            if (meal_type_elements.item(i).checked){
+                meal_type = meal_type_elements.item(i).value;
+            }
+        }
+
+        // Error check
+        var error = false;
+        var message_tag = document.getElementById("message");
+        message_tag.innerHTML = "";
+        document.getElementById("meal_type_radio").style.backgroundColor = "white";
+        if (meal_type == ""){
+            message_tag.innerHTML += "<span style='color:red'>食事が未選択です。</span><br/>";
+            document.getElementById("meal_type_radio").style.backgroundColor = "red";
+            error = true;
+        }else{
+            document.getElementById("meal_type_radio").style.backgroundColor = "white";
+        }
+        if (tested_BSL == null || tested_BSL == "" || !isNum(tested_BSL)){
+            message_tag.innerHTML += "<span style='color:red'>食前血糖値が未設定です。</span><br/>";
+            tested_BSL_tag.style.backgroundColor = "red";
+            error = true;
+        }else{
+            tested_BSL_tag.style.backgroundColor = "white";
+        }
+        if (target_BSL == null || target_BSL == ""  || !isNum(target_BSL)){
+            message_tag.innerHTML += "<span style='color:red'>目標血糖値が未設定です。</span><br/>";
+            target_BSL_tag.style.backgroundColor = "red";
+            error = true;
+        }
+        if (ISF == null || ISF == "" || !isNum(ISF)){
+            message_tag.innerHTML += "<span style='color:red'>インスリン効果値が未設定です。</span><br/>";
+            ISF_tag.style.backgroundColor = "red";
+            error = true;
+        }else{
+            ISF_tag.style.backgroundColor = "white";
+        }
+        if (carb_value == null || carb_value == "" || !isNum(carb_value)){
+            message_tag.innerHTML += "<span style='color:red'>カーボ数が未設定です。</span><br/>";
+            carb_value_tag.style.backgroundColor = "red";
+            error = true;
+        }else{
+            carb_value_tag.style.backgroundColor = "white";
+        }
+        if (carb_ratio == null || carb_ratio == "" || !isNum(carb_ratio)){
+            message_tag.innerHTML += "<span style='color:red'>カーボ比が未設定です。</span><br/>";
+            carb_ratio_tag.style.backgroundColor = "red";
+            error = true;
+        }else{
+            carb_ratio_tag.style.backgroundColor = "white";
+        }
+
+
+        if(error == false){
+            // インスリン計算
+            var insulin_tag = document.getElementById("insulin");
+            var correct_insulin_value = round((tested_BSL - target_BSL) / ISF);
+            var carb_insulin_value = round(carb_value * carb_ratio); 
+            var insulin_value = round(correct_insulin_value + carb_insulin_value);
+
+            insulin_tag.innerText = "責任インスリンは (" + tested_BSL + "-" + target_BSL + ")/" + ISF + " + " + carb_value + "*" + carb_ratio + " = " + insulin_value + "単位です.";
+
+            // カーボ比・ランタス投与量変更
+            var adjustment_tag = document.getElementById("adjustment");
+            var target_insulin = "";
+            if(meal_type == "breakfast"){
+                target_insulin = "今日のランタスを1単位"
+            }else if(meal_type == "lunch"){
+                target_insulin = "明日の朝食のカーボ比を0.1単位"
+            }else if(meal_type == "dinner"){
+                target_insulin = "明日の昼食のカーボ比を0.1単位"
+            }
+            if(tested_BSL <= 70){
+                adjustment_tag.innerText = "血糖値が70以下なので、" + target_insulin  + " 減らしてください。"
+            }else if(tested_BSL > 150){
+                adjustment_tag.innerText = "血糖値が150より大きいので、" + target_insulin + " 増やしてください。"
+            }else if(tested_BSL > 130){
+                adjustment_tag.innerText = "血糖値が130より大きいので、もし二日連続なら、" + target_insulin + " 増やしてください。"
+            }
+        }
+    }
+    </script>
+</head>
+
+<body>
+    <div id="message"></div>
+
+    <div id="meal_type_radio">
+        <label for="meal_type">食事:</label>
+        <label for="mt_breakfast">朝食 <input id="mt_breakfast" type="radio" name="meal_type" value="breakfast"  required></label>
+        <label for="mt_lunch">昼食 <input id="mt_lunch" type="radio" name="meal_type" value="lunch" ></label>
+        <label for="mt_dinner">夕食 <input id="mt_dinner" type="radio" name="meal_type" value="dinner" ></label>
+    </div>
+
+    <div>
+        <div>
+            <label for="tested_blood_suger_level">食前血糖値: </label>
+            <input type="text" id="tested_blood_suger_level" size="5" required>
+        </div>
+        <div>
+            <label for="target_blood_suger_level">目標血糖値: </label>
+            <input type="text"  id="target_blood_suger_level" value="120" size="5" required>
+        </div>
+        <div>
+            <label for="insulin_sensitivity_factor">インスリン効果値: </label>
+            <input type="text" id="insulin_sensitivity_factor" value="50" size="5" required>
+        </div>
+    </div>
+
+    <div>
+        <div>
+            <label for="carb_value">カーボ数: </label>
+            <input type="text" id="carb_value" size="5" required>
+        </div>
+        <div>
+            <label for="carb_ratio">カーボ比: </label>
+            <input type="text"  id="carb_ratio" value="1.0" size="5" required>
+        </div>
+    </div>
+    <div>
+        <button type=”button” onclick="calc()">計算</button>  
+    </div>
+
+    <div id="insulin"></div>
+    <div id="adjustment"></div>
+  </body>
+</html>
