@@ -38,6 +38,19 @@
     function round(val){
         return (Math.round(val * 10)) / 10
     }
+    function hideToggle(){
+        var hide_tag = document.getElementsByClassName("hide");
+	var hide_arr = Array.from(hide_tag);
+
+        hide_arr.forEach( (element, index) => {
+       	    if(element.style.display == "none"){
+                element.style.display = "inline";
+            }else{
+                element.style.display = "none";
+	    }
+        });
+        
+    }
     function calc() {
         var tested_BSL_tag = document.getElementById("tested_blood_suger_level");
         var target_BSL_tag = document.getElementById("target_blood_suger_level");
@@ -168,27 +181,51 @@
 -->
     <div>
         <button type=”button” onclick="calc()">計算</button>  
+        <button type=”button” onclick="hideToggle()">説明</button>  
     </div>
 
     <h4 class="title">補正インスリン</h4>
+<!--
+    <table class="hide" style="display: none;">
+      <tr>
+        <td nowrap>食前血糖値</td>
+        <td nowrap>-</td>
+        <td nowrap>目標血糖値</td>
+        <td nowrap rowspan="2"> = </td>
+      </tr>
+      <tr>
+        <td nowrap colspan="3" align="center" style="border-top: solid;">インスリン効果値</td>
+      </tr>
+    </table>
+-->
     <table>
       <tr>
-        <td nowrap><input onchange="calc()" type="text" id="tested_blood_suger_level" value="" size="3" required></td>
+        <td nowrap><span class="hide" style="display: none;">食前血糖値:</span><input onchange="calc()" type="text" id="tested_blood_suger_level" value="" size="3" required></td>
         <td nowrap>-</td>
-        <td nowrap><input onchange="calc()"  type="text" id="target_blood_suger_level" value="120" size="3" required></td>
+        <td nowrap><span class="hide" style="display: none;">目標血糖値:</span><input onchange="calc()"  type="text" id="target_blood_suger_level" value="120" size="3" required></td>
         <td nowrap rowspan="2"> = <span class="correct_insulin"></span></td>
       </tr>
       <tr>
-        <td nowrap colspan="3" align="center" style="border-top: solid;"><input onchange="calc()" type="text" id="insulin_sensitivity_factor" value="80" size="3" required></td>
+        <td nowrap colspan="3" align="center" style="border-top: solid;"><span class="hide" style="display: none;">インスリン効果値:</span><input onchange="calc()" type="text" id="insulin_sensitivity_factor" value="80" size="3" required></td>
       </tr>
     </table>
 
     <h4 class="title">糖質インスリン</h4>
-    <table width="300">
+<!--
+    <table class="hide" style="display: none;">
       <tr>
-        <td nowrap><input type="text" id="carb_value" onchange="calc()" value="0" size="3" required></td>
-        <td nowrap>*</td>
-        <td nowrap><input type="text"  id="carb_ratio" onchange="calc()" value="1.0" size="3" required></td>
+        <td nowrap>カーボ数</td>
+        <td nowrap>×</td>
+        <td nowrap>カーボ比</td>
+        <td nowrap> = </td>
+      </tr>
+    </table>
+-->
+    <table>
+      <tr>
+        <td nowrap><span class="hide" style="display: none;">カーボ数:</span><input type="text" id="carb_value" onchange="calc()" value="0" size="3" required></td>
+        <td nowrap>×</td>
+        <td nowrap><span class="hide" style="display: none;">カーボ比:</span><input type="text"  id="carb_ratio" onchange="calc()" value="1.0" size="3" required></td>
         <td nowrap> = <span class="carb_insulin"></span></td>
       </tr>
     </table>
