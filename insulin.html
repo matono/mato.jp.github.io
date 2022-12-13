@@ -73,79 +73,84 @@
         }
 
         // Error check
-        var error = false;
+        var correct_error = false;
+        var carb_error = false;
         var message_tag = document.getElementById("message");
         message_tag.innerHTML = "";
 
         if (tested_BSL == null || tested_BSL == "" || !isNum(tested_BSL)){
             message_tag.innerHTML += "<span style='color:red'>食前血糖値が未設定です。</span><br/>";
             tested_BSL_tag.style.backgroundColor = "red";
-            error = true;
+            correct_error = true;
         }else{
             tested_BSL_tag.style.backgroundColor = "white";
         }
         if (target_BSL == null || target_BSL == ""  || !isNum(target_BSL)){
             message_tag.innerHTML += "<span style='color:red'>目標血糖値が未設定です。</span><br/>";
             target_BSL_tag.style.backgroundColor = "red";
-            error = true;
+            correct_error = true;
+        }else{
+            target_BSL_tag.style.backgroundColor = "white";
         }
-        if (ISF == null || ISF == "" || !isNum(ISF)){
+        if (ISF == null || ISF == "" || !isNum(ISF) || ISF == 0){
             message_tag.innerHTML += "<span style='color:red'>インスリン効果値が未設定です。</span><br/>";
             ISF_tag.style.backgroundColor = "red";
-            error = true;
+            correct_error = true;
         }else{
             ISF_tag.style.backgroundColor = "white";
         }
         if (carb_value == null || carb_value == "" || !isNum(carb_value)){
             message_tag.innerHTML += "<span style='color:red'>カーボ数が未設定です。</span><br/>";
             carb_value_tag.style.backgroundColor = "red";
-            error = true;
+            carb_error = true;
         }else{
             carb_value_tag.style.backgroundColor = "white";
         }
         if (carb_ratio == null || carb_ratio == "" || !isNum(carb_ratio)){
             message_tag.innerHTML += "<span style='color:red'>カーボ比が未設定です。</span><br/>";
             carb_ratio_tag.style.backgroundColor = "red";
-            error = true;
+            carb_error = true;
         }else{
             carb_ratio_tag.style.backgroundColor = "white";
         }
 
 
-        if(error == false){
+        var correct_insulin_tag = document.getElementsByClassName("correct_insulin");
+	var correct_insulin_arr = Array.from(correct_insulin_tag);
+        var carb_insulin_tag = document.getElementsByClassName("carb_insulin");
+	var carb_insulin_arr = Array.from(carb_insulin_tag);
+        var total_insulin_tag = document.getElementsByClassName("total_insulin");
+	var total_insulin_arr = Array.from(total_insulin_tag);
 
-            // カーボ比・ランタス投与量変更
-            var adjustment_tag = document.getElementById("adjustment");
-            var target_insulin = "";
-
-            // インスリン計算
-            var correct_insulin_value = round((tested_BSL - target_BSL) / ISF);
-            var carb_insulin_value = round(carb_value * carb_ratio); 
-            var insulin_value = round(correct_insulin_value + carb_insulin_value);
-
-            var correct_insulin_tag = document.getElementsByClassName("correct_insulin");
-	    var correct_insulin_arr = Array.from(correct_insulin_tag);
+        // インスリン計算
+        var correct_insulin_value = 0;
+        var carb_insulin_value = 0;
+        if(correct_error == false){
+            correct_insulin_value = round((tested_BSL - target_BSL) / ISF);
             correct_insulin_arr.forEach( (element, index) => {
                element.innerHTML = correct_insulin_value;
             });
+        }else{
+            correct_insulin_arr.forEach( (element, index) => {
+               element.innerHTML = "NaN";
+            });
+        }
 
-            var carb_insulin_tag = document.getElementsByClassName("carb_insulin");
-	    var carb_insulin_arr = Array.from(carb_insulin_tag);
+        if(carb_error == false){
+            carb_insulin_value = round(carb_value * carb_ratio); 
             carb_insulin_arr.forEach( (element, index) => {
                element.innerHTML = carb_insulin_value;
             });
-
-            var total_insulin_tag = document.getElementsByClassName("total_insulin");
-	    var total_insulin_arr = Array.from(total_insulin_tag);
-            total_insulin_arr.forEach( (element, index) => {
-               element.innerHTML = insulin_value;
+        }else{
+            carb_insulin_arr.forEach( (element, index) => {
+               element.innerHTML = "NaN";
             });
-
-            //var insulin_tag = document.getElementById("insulin");
-            //insulin_tag.innerHTML = "補正インスリン: (" + tested_BSL + "-" + target_BSL + ")/" + ISF + " = " + correct_insulin_value + "単位<br/>";
-            //insulin_tag.innerHTML += "糖質インスリン: " + carb_value + "*" + carb_ratio + " = " + carb_insulin_value + "単位<br/>";
-            //insulin_tag.innerHTML += "インスリンは合計で" + insulin_value + "単位";
         }
+
+        var insulin_value = round(correct_insulin_value + carb_insulin_value);
+        total_insulin_arr.forEach( (element, index) => {
+           element.innerHTML = insulin_value;
+        });
     }
     </script>
 </head>
@@ -160,22 +165,22 @@
     <h4 class="title">補正インスリン</h4>
     <table>
       <tr>
-        <td nowrap><span class="hide" style="display: none;">食前血糖値:</span><input onchange="calc()" type="number" id="tested_blood_suger_level" value="120" min="0" max="999" step="1" required></td>
+        <td nowrap><span class="hide" style="display: none;">食前血糖値:</span><input onchange="calc()" type="number" id="tested_blood_suger_level" value="120" min="0" max="999" step="1" placeholder="食前BS" required></td>
         <td nowrap>-</td>
-        <td nowrap><span class="hide" style="display: none;">目標血糖値:</span><input onchange="calc()"  type="number" id="target_blood_suger_level" value="120" min="0" max="999" step="1" required></td>
+        <td nowrap><span class="hide" style="display: none;">目標血糖値:</span><input onchange="calc()"  type="number" id="target_blood_suger_level" value="120" min="0" max="999" step="1" placeholder="目標BS" required></td>
         <td nowrap rowspan="2"> = <span class="correct_insulin"></span></td>
       </tr>
       <tr>
-        <td nowrap colspan="3" align="center" style="border-top: solid;"><span class="hide" style="display: none;">インスリン効果値:</span><input onchange="calc()" type="number" id="insulin_sensitivity_factor" value="80" min="0" max="999" step="1" required></td>
+        <td nowrap colspan="3" align="center" style="border-top: solid;"><span class="hide" style="display: none;">インスリン効果値:</span><input onchange="calc()" type="number" id="insulin_sensitivity_factor" value="80" min="1" max="999" step="1" placeholder="INS効果値" required></td>
       </tr>
     </table>
 
     <h4 class="title">糖質インスリン</h4>
     <table>
       <tr>
-        <td nowrap><span class="hide" style="display: none;">カーボ数:</span><input type="number" id="carb_value" onchange="calc()" value="0.0" min="0.0" max="99.0" step="0.1" required></td>
+        <td nowrap><span class="hide" style="display: none;">カーボ数:</span><input type="number" id="carb_value" onchange="calc()" value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数" required></td>
         <td nowrap>×</td>
-        <td nowrap><span class="hide" style="display: none;">カーボ比:</span><input type="number"  id="carb_ratio" onchange="calc()" value="1.0" min="0.0" max="9.9" step="0.1" required></td>
+        <td nowrap><span class="hide" style="display: none;">カーボ比:</span><input type="number"  id="carb_ratio" onchange="calc()" value="1.0" min="0.0" max="9.9" step="0.1" placeholder="カーボ比" required></td>
         <td nowrap> = <span class="carb_insulin"></span></td>
       </tr>
     </table>
