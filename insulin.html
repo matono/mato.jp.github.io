@@ -13,6 +13,9 @@
 			input {
 				font-size: 40pt;
 			}
+			textarea {
+				font-size: 30pt;
+			}
 			button {
 				font-size: 40pt;
 			}
@@ -61,7 +64,6 @@
 				const cookies = document.cookie;
 				const array = cookies.split(';');
 				array.forEach( (element, index) => {
-
 					var elem = element.split("=");
 					var key = elem[0].trim() 
 					if(key == "measured_BSL"){
@@ -133,7 +135,7 @@
 				}else{
 					ISF_tag.style.backgroundColor = "white";
 				}
-				if (carb_value == null || carb_value == "" || !isNum(carb_value)){
+				if (carb_value == null || carb_value == ""){
 					message_tag.innerHTML += "<span style='color:red'>カーボ数が未設定です。</span><br/>";
 					carb_value_tag.style.backgroundColor = "red";
 					carb_error = true;
@@ -179,7 +181,15 @@
 				}
 
 				if(carb_error == false){
-					carb_insulin_value = round(carb_value * carb_ratio); 
+					var carb_total = round(carb_value
+						.split(/\r\n|\n/)
+						.filter(Boolean)
+						.map(l => l.trim())
+						.reduce((a,b) => a + Number(b), 0));
+
+					var carb_fomula_tag = document.getElementById("carb_fomula");
+					carb_fomula_tag.innerText = " = " + carb_total + "×" + carb_ratio 
+					carb_insulin_value = round(carb_total * carb_ratio); 
 					carb_insulin_arr.forEach( (element, index) => {
 						element.innerHTML = carb_insulin_value;
 					});
@@ -232,14 +242,17 @@
       <tr>
         <td nowrap>
 	  			<span class="hide" style="display: none;">カーボ数:</span>
+	  			<textarea id="carb_value" placeholder="カーボ数" onchange="calc()" onfocus="this.select()" cols="5" rows="3" required></textarea>
+					<!--
 	  			<input type="number" id="carb_value"                 value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数"  onchange="calc()" onfocus="this.select()" required>
+					-->
 				</td>
         <td nowrap>×</td>
         <td nowrap>
 	  			<span class="hide" style="display: none;">カーボ比:</span>
 	  			<input type="number" id="carb_ratio"                 value="1.0" min="0.0" max="9.9"  step="0.1" placeholder="カーボ比"  onchange="calc()" onfocus="this.select()" required>
 				</td>
-        <td nowrap> = <span class="carb_insulin"></span></td>
+        <td nowrap><span id="carb_fomula"></span> = <span class="carb_insulin"></span></td>
       </tr>
     </table>
 
