@@ -1,186 +1,244 @@
 <!doctype html>
 
 <html lang="ja">
-<head>
-    <meta charset="utf-8">
+	<head>
+		<meta charset="utf-8">
+		<title>Insulin</title>
+		<meta name="description" content="Insulin">
+		<meta name="author" content="mato.jp">
+		<style>
+			body {
+				font-size: 40pt;
+			}
+			input {
+				font-size: 40pt;
+			}
+			button {
+				font-size: 40pt;
+			}
+			input[type="radio"] , input[type="checkbox"]{
+				-webkit-transform: scale(3.0);
+				transform: scale(3.0);
+				margin-right: 0.5em;
+			}
+			table {
+				padding-left:40px;
+				padding-botom:40px;
+			}
+			.title{
+				margin-block-end: 0.33em;
+			}
+		</style>
 
-    <title>Insulin</title>
-    <meta name="description" content="Insulin">
-    <meta name="author" content="mato.jp">
-    <style>
-        body {
-            font-size: 40pt;
-        }
-        input {
-            font-size: 40pt;
-        }
-        button {
-            font-size: 40pt;
-        }
-        input[type="radio"] , input[type="checkbox"]{
-            -webkit-transform: scale(3.0);
-            transform: scale(3.0);
-            margin-right: 0.5em;
-        }
-	table {
-	    padding-left:40px;
-	    padding-botom:40px;
-        }
-	.title{
-	    margin-block-end: 0.33em;
-        }
-    </style>
+		<script language="javascript" type="text/javascript">
+			function isNum(val){
+					return !isNaN(val)
+			}
+			function round(val){
+					return (Math.round(val * 10000)) / 10000
+			}
+			
+			function hideToggle(){
+				var hide_tag = document.getElementsByClassName("hide");
+				var hide_arr = Array.from(hide_tag);
 
-    <script language="javascript" type="text/javascript">
-    function isNum(val){
-        return !isNaN(val)
-    }
-    function round(val){
-        return (Math.round(val * 10000)) / 10000
-    }
-    function hideToggle(){
-        var hide_tag = document.getElementsByClassName("hide");
-	var hide_arr = Array.from(hide_tag);
+				hide_arr.forEach( (element, index) => {
+					if(element.style.display == "none"){
+						element.style.display = "inline";
+					}else{
+						element.style.display = "none";
+					}
+				});  
+			}
 
-        hide_arr.forEach( (element, index) => {
-       	    if(element.style.display == "none"){
-                element.style.display = "inline";
-            }else{
-                element.style.display = "none";
-	    }
-        });
-        
-    }
-    function calc() {
-        var tested_BSL_tag = document.getElementById("tested_blood_suger_level");
-        var target_BSL_tag = document.getElementById("target_blood_suger_level");
-        var ISF_tag = document.getElementById("insulin_sensitivity_factor");
-        var carb_value_tag = document.getElementById("carb_value");
-        var carb_ratio_tag = document.getElementById("carb_ratio");
+			function getCookies() {
+				var measured_BSL_tag = document.getElementById("measured_blood_suger_level");
+				var target_BSL_tag = document.getElementById("target_blood_suger_level");
+				var ISF_tag = document.getElementById("insulin_sensitivity_factor");
+				var carb_value_tag = document.getElementById("carb_value");
+				var carb_ratio_tag = document.getElementById("carb_ratio");
 
-        var tested_BSL = tested_BSL_tag.value;
-        var target_BSL = target_BSL_tag.value;
-        var ISF = ISF_tag.value;
-        var carb_value = carb_value_tag.value;
-        var carb_ratio = carb_ratio_tag.value;
+				const cookies = document.cookie;
+				const array = cookies.split(';');
+				array.forEach( (element, index) => {
 
-        var time_slot_elements = document.getElementsByName("time_slot");
-        let time_slot = "";
-        for (let i = 0; i < time_slot_elements.length; i++){
-            if (time_slot_elements.item(i).checked){
-                time_slot = time_slot_elements.item(i).value;
-            }
-        }
+					var elem = element.split("=");
+					var key = elem[0].trim() 
+					if(key == "measured_BSL"){
+						measured_BSL_tag.value = unescape(elem[1]);
+					}
+					else if(key == "target_BSL"){
+						target_BSL_tag.value = unescape(elem[1]);
+					}
+					else if(key == "ISF"){
+						ISF_tag.value = unescape(elem[1]);
+					}
+					else if(key == "carb_value"){
+						carb_value_tag.value = unescape(elem[1]);
+					}
+					else if(key == "carb_ratio"){
+						carb_ratio_tag.value = unescape(elem[1]);
+					}
+					else{
+						console.error("Unknown cookie:", element);
+					}
+				});
+			}
 
-        // Error check
-        var correct_error = false;
-        var carb_error = false;
-        var message_tag = document.getElementById("message");
-        message_tag.innerHTML = "";
+			function calc() {
+				var measured_BSL_tag = document.getElementById("measured_blood_suger_level");
+				var target_BSL_tag = document.getElementById("target_blood_suger_level");
+				var ISF_tag = document.getElementById("insulin_sensitivity_factor");
+				var carb_value_tag = document.getElementById("carb_value");
+				var carb_ratio_tag = document.getElementById("carb_ratio");
 
-        if (tested_BSL == null || tested_BSL == "" || !isNum(tested_BSL)){
-            message_tag.innerHTML += "<span style='color:red'>食前血糖値が未設定です。</span><br/>";
-            tested_BSL_tag.style.backgroundColor = "red";
-            correct_error = true;
-        }else{
-            tested_BSL_tag.style.backgroundColor = "white";
-        }
-        if (target_BSL == null || target_BSL == ""  || !isNum(target_BSL)){
-            message_tag.innerHTML += "<span style='color:red'>目標血糖値が未設定です。</span><br/>";
-            target_BSL_tag.style.backgroundColor = "red";
-            correct_error = true;
-        }else{
-            target_BSL_tag.style.backgroundColor = "white";
-        }
-        if (ISF == null || ISF == "" || !isNum(ISF) || ISF == 0){
-            message_tag.innerHTML += "<span style='color:red'>インスリン効果値が未設定です。</span><br/>";
-            ISF_tag.style.backgroundColor = "red";
-            correct_error = true;
-        }else{
-            ISF_tag.style.backgroundColor = "white";
-        }
-        if (carb_value == null || carb_value == "" || !isNum(carb_value)){
-            message_tag.innerHTML += "<span style='color:red'>カーボ数が未設定です。</span><br/>";
-            carb_value_tag.style.backgroundColor = "red";
-            carb_error = true;
-        }else{
-            carb_value_tag.style.backgroundColor = "white";
-        }
-        if (carb_ratio == null || carb_ratio == "" || !isNum(carb_ratio)){
-            message_tag.innerHTML += "<span style='color:red'>カーボ比が未設定です。</span><br/>";
-            carb_ratio_tag.style.backgroundColor = "red";
-            carb_error = true;
-        }else{
-            carb_ratio_tag.style.backgroundColor = "white";
-        }
+				var measured_BSL = measured_BSL_tag.value;
+				var target_BSL = target_BSL_tag.value;
+				var ISF = ISF_tag.value;
+				var carb_value = carb_value_tag.value;
+				var carb_ratio = carb_ratio_tag.value;
 
+				var time_slot_elements = document.getElementsByName("time_slot");
+				let time_slot = "";
+				for (let i = 0; i < time_slot_elements.length; i++){
+					if (time_slot_elements.item(i).checked){
+						time_slot = time_slot_elements.item(i).value;
+					}
+				}
 
-        var correct_insulin_tag = document.getElementsByClassName("correct_insulin");
-	var correct_insulin_arr = Array.from(correct_insulin_tag);
-        var carb_insulin_tag = document.getElementsByClassName("carb_insulin");
-	var carb_insulin_arr = Array.from(carb_insulin_tag);
-        var total_insulin_tag = document.getElementsByClassName("total_insulin");
-	var total_insulin_arr = Array.from(total_insulin_tag);
+				// Error check
+				var correct_error = false;
+				var carb_error = false;
+				var message_tag = document.getElementById("message");
+				message_tag.innerHTML = "";
 
-        // インスリン計算
-        var correct_insulin_value = 0;
-        var carb_insulin_value = 0;
-        if(correct_error == false){
-            correct_insulin_value = round((tested_BSL - target_BSL) / ISF);
-            correct_insulin_arr.forEach( (element, index) => {
-               element.innerHTML = correct_insulin_value;
-            });
-        }else{
-            correct_insulin_arr.forEach( (element, index) => {
-               element.innerHTML = "NaN";
-            });
-        }
+				if (measured_BSL == null || measured_BSL == "" || !isNum(measured_BSL)){
+					message_tag.innerHTML += "<span style='color:red'>食前血糖値が未設定です。</span><br/>";
+					measured_BSL_tag.style.backgroundColor = "red";
+					correct_error = true;
+				}else{
+					measured_BSL_tag.style.backgroundColor = "white";
+				}
+				if (target_BSL == null || target_BSL == ""  || !isNum(target_BSL)){
+					message_tag.innerHTML += "<span style='color:red'>目標血糖値が未設定です。</span><br/>";
+					target_BSL_tag.style.backgroundColor = "red";
+					correct_error = true;
+				}else{
+					target_BSL_tag.style.backgroundColor = "white";
+				}
+				if (ISF == null || ISF == "" || !isNum(ISF) || ISF == 0){
+					message_tag.innerHTML += "<span style='color:red'>インスリン効果値が未設定です。</span><br/>";
+					ISF_tag.style.backgroundColor = "red";
+					correct_error = true;
+				}else{
+					ISF_tag.style.backgroundColor = "white";
+				}
+				if (carb_value == null || carb_value == "" || !isNum(carb_value)){
+					message_tag.innerHTML += "<span style='color:red'>カーボ数が未設定です。</span><br/>";
+					carb_value_tag.style.backgroundColor = "red";
+					carb_error = true;
+				}else{
+					carb_value_tag.style.backgroundColor = "white";
+				}
+				if (carb_ratio == null || carb_ratio == "" || !isNum(carb_ratio)){
+					message_tag.innerHTML += "<span style='color:red'>カーボ比が未設定です。</span><br/>";
+					carb_ratio_tag.style.backgroundColor = "red";
+					carb_error = true;
+				}else{
+					carb_ratio_tag.style.backgroundColor = "white";
+				}
+				
+				// set cookies
+				{
+					document.cookie = 'measured_BSL=' + encodeURIComponent(measured_BSL);
+					document.cookie = 'target_BSL=' + encodeURIComponent(target_BSL);
+					document.cookie = 'ISF=' + encodeURIComponent(ISF);
+					document.cookie = 'carb_value=' + encodeURIComponent(carb_value);
+					document.cookie = 'carb_ratio=' + encodeURIComponent(carb_ratio);
+				}
 
-        if(carb_error == false){
-            carb_insulin_value = round(carb_value * carb_ratio); 
-            carb_insulin_arr.forEach( (element, index) => {
-               element.innerHTML = carb_insulin_value;
-            });
-        }else{
-            carb_insulin_arr.forEach( (element, index) => {
-               element.innerHTML = "NaN";
-            });
-        }
+				var correct_insulin_tag = document.getElementsByClassName("correct_insulin");
+				var correct_insulin_arr = Array.from(correct_insulin_tag);
+				var carb_insulin_tag = document.getElementsByClassName("carb_insulin");
+				var carb_insulin_arr = Array.from(carb_insulin_tag);
+				var total_insulin_tag = document.getElementsByClassName("total_insulin");
+				var total_insulin_arr = Array.from(total_insulin_tag);
 
-        var insulin_value = round(correct_insulin_value + carb_insulin_value);
-        total_insulin_arr.forEach( (element, index) => {
-           element.innerHTML = insulin_value;
-        });
-    }
-    </script>
-</head>
+				// インスリン計算
+				var correct_insulin_value = 0;
+				var carb_insulin_value = 0;
+				if(correct_error == false){
+					correct_insulin_value = round((measured_BSL - target_BSL) / ISF);
+					correct_insulin_arr.forEach( (element, index) => {
+						element.innerHTML = correct_insulin_value;
+					});
+				}else{
+					correct_insulin_arr.forEach( (element, index) => {
+						element.innerHTML = "NaN";
+					});
+				}
 
-<body>
-    <div id="message"></div>
-    <div>
-        <button type=”button” onclick="calc()">計算</button>  
-        <button type=”button” onclick="hideToggle()">説明</button>  
+				if(carb_error == false){
+					carb_insulin_value = round(carb_value * carb_ratio); 
+					carb_insulin_arr.forEach( (element, index) => {
+						element.innerHTML = carb_insulin_value;
+					});
+				}else{
+					carb_insulin_arr.forEach( (element, index) => {
+						element.innerHTML = "NaN";
+					});
+				}
+
+				var insulin_value = round(correct_insulin_value + carb_insulin_value);
+				total_insulin_arr.forEach( (element, index) => {
+					element.innerHTML = insulin_value;
+				});
+
+			}
+		</script>
+	</head>
+
+	<body onload="getCookies()">
+		<div id="message"></div>
+		<div>
+			<button type=”button” onclick="calc()">計算</button>  
+			<button type=”button” onclick="hideToggle()">説明</button>  
     </div>
 
     <h4 class="title">補正インスリン</h4>
     <table>
       <tr>
-        <td nowrap><span class="hide" style="display: none;">食前血糖値:</span><input onchange="calc()" type="number" id="tested_blood_suger_level" value="120" min="0" max="999" step="1" placeholder="食前BS" required></td>
+        <td nowrap>
+	  			<span class="hide" style="display: none;">食前血糖値:</span>
+	  			<input type="number" id="measured_blood_suger_level"   value="120" min="0"   max="999"  step="1"   placeholder="食前BS"    onchange="calc()" onfocus="this.select()" required>
+ 				</td>
         <td nowrap>-</td>
-        <td nowrap><span class="hide" style="display: none;">目標血糖値:</span><input onchange="calc()"  type="number" id="target_blood_suger_level" value="120" min="0" max="999" step="1" placeholder="目標BS" required></td>
+        <td nowrap>
+	  			<span class="hide" style="display: none;">目標血糖値:</span>
+	  			<input type="number" id="target_blood_suger_level"   value="120" min="0"   max="999"  step="1"   placeholder="目標BS"    onchange="calc()" onfocus="this.select()" required>
+				</td>
         <td nowrap rowspan="2"> = <span class="correct_insulin"></span></td>
       </tr>
       <tr>
-        <td nowrap colspan="3" align="center" style="border-top: solid;"><span class="hide" style="display: none;">インスリン効果値:</span><input onchange="calc()" type="number" id="insulin_sensitivity_factor" value="80" min="1" max="999" step="1" placeholder="INS効果値" required></td>
+        <td nowrap colspan="3" align="center" style="border-top: solid;">
+	  			<span class="hide" style="display: none;">インスリン効果値:</span>
+	  			<input type="number" id="insulin_sensitivity_factor" value="80"  min="1"   max="999"  step="1"   placeholder="INS効果値" onchange="calc()" onfocus="this.select()" required>
+				</td>
       </tr>
     </table>
 
     <h4 class="title">糖質インスリン</h4>
     <table>
       <tr>
-        <td nowrap><span class="hide" style="display: none;">カーボ数:</span><input type="number" id="carb_value" onchange="calc()" value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数" required></td>
+        <td nowrap>
+	  			<span class="hide" style="display: none;">カーボ数:</span>
+	  			<input type="number" id="carb_value"                 value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数"  onchange="calc()" onfocus="this.select()" required>
+				</td>
         <td nowrap>×</td>
-        <td nowrap><span class="hide" style="display: none;">カーボ比:</span><input type="number"  id="carb_ratio" onchange="calc()" value="1.0" min="0.0" max="9.9" step="0.1" placeholder="カーボ比" required></td>
+        <td nowrap>
+	  			<span class="hide" style="display: none;">カーボ比:</span>
+	  			<input type="number" id="carb_ratio"                 value="1.0" min="0.0" max="9.9"  step="0.1" placeholder="カーボ比"  onchange="calc()" onfocus="this.select()" required>
+				</td>
         <td nowrap> = <span class="carb_insulin"></span></td>
       </tr>
     </table>
@@ -194,7 +252,5 @@
         <td nowrap> = <span class="total_insulin"></span></td>
       </tr>
     </table>
-
-
   </body>
 </html>
