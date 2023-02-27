@@ -152,11 +152,11 @@
 				
 				// set cookies
 				{
-					document.cookie = 'measured_BSL=' + encodeURIComponent(measured_BSL);
-					document.cookie = 'target_BSL=' + encodeURIComponent(target_BSL);
-					document.cookie = 'ISF=' + encodeURIComponent(ISF);
-					document.cookie = 'carb_value=' + encodeURIComponent(carb_value);
-					document.cookie = 'carb_ratio=' + encodeURIComponent(carb_ratio);
+					document.cookie = 'measured_BSL=' + encodeURIComponent(measured_BSL) + "; Expires=Wed, 30 Dec 2037 00:00:00 GMT";
+					document.cookie = 'target_BSL=' + encodeURIComponent(target_BSL) + "; Expires=Wed, 30 Dec 2037 00:00:00 GMT";
+					document.cookie = 'ISF=' + encodeURIComponent(ISF) + "; Expires=Wed, 30 Dec 2037 00:00:00 GMT";
+					document.cookie = 'carb_value=' + encodeURIComponent(carb_value) + "; Expires=Wed, 30 Dec 2037 00:00:00 GMT";
+					document.cookie = 'carb_ratio=' + encodeURIComponent(carb_ratio) + "; Expires=Wed, 30 Dec 2037 00:00:00 GMT";
 				}
 
 				var correct_insulin_tag = document.getElementsByClassName("correct_insulin");
@@ -181,11 +181,11 @@
 				}
 
 				if(carb_error == false){
-					var carb_total = round(carb_value
+					var carb_text = carb_value
 						.split(/\r\n|\n/)
 						.filter(Boolean)
-						.map(l => l.trim())
-						.reduce((a,b) => a + Number(b), 0));
+						.map(l => l.trim());
+					var carb_total = round(carb_text.reduce((a,b) => a + Number(b), 0));
 
 					var carb_fomula_tag = document.getElementById("carb_fomula");
 					carb_fomula_tag.innerText = " = " + carb_total + "×" + carb_ratio 
@@ -242,15 +242,15 @@
       <tr>
         <td nowrap>
 	  			<span class="hide" style="display: none;">カーボ数:</span>
-	  			<textarea id="carb_value" placeholder="カーボ数" onchange="calc()" onfocus="this.select()" cols="5" rows="3" required>0</textarea>
+	  			<input type="number" id="carb_value" value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数"  onchange="calc()" onfocus="this.select()" required>
 					<!--
-	  			<input type="number" id="carb_value"                 value="0.0" min="0.0" max="99.0" step="0.1" placeholder="カーボ数"  onchange="calc()" onfocus="this.select()" required>
+	  			<textarea id="carb_value" placeholder="カーボ数" onchange="calc()" cols="5" rows="4" required>0&#13;0&#13;0&#13;0</textarea>
 					-->
 				</td>
         <td nowrap>×</td>
         <td nowrap>
 	  			<span class="hide" style="display: none;">カーボ比:</span>
-	  			<input type="number" id="carb_ratio"                 value="1.0" min="0.0" max="9.9"  step="0.1" placeholder="カーボ比"  onchange="calc()" onfocus="this.select()" required>
+	  			<input type="number" id="carb_ratio" value="1.0" min="0.0" max="9.9"  step="0.1" placeholder="カーボ比"  onchange="calc()" onfocus="this.select()" required>
 				</td>
         <td nowrap><span id="carb_fomula"></span> = <span class="carb_insulin"></span></td>
       </tr>
